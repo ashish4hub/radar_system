@@ -6,6 +6,7 @@
 #include "uart.h"
 #include <stdlib.h>
 
+void radar_init(void);                            // Initialize RADAR peripherals
 void radar_control(void);                         // RADAR control function
 
 #endif
