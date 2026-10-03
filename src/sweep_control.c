@@ -1,6 +1,6 @@
 /* Service Layer for Servo motor control */
 
-#include "sweep_control.h"
+#include "../inc/sweep_control.h"
 
 /* Sweep Direction */
 typedef enum
@@ -13,9 +13,7 @@ typedef enum
 typedef struct
 {
     uint8_t current_step;                     // Servo steps
-    uint32_t last_update;                    // System clock timestamp for Last servo step update
     sweep_dir_t direction;                  // Sweep direcion
-    uint16_t interval;                     // Sweep speed
     uint8_t servo_pin;                    // Servo Pin
 }sweep_control_t;
 
@@ -24,12 +22,8 @@ sweep_control_t sweep_control =
 {
     .current_step = 5,
     .direction = DIR_forward,
-    .interval = 500,
     .servo_pin = 5
 };
-
-uint32_t Forward_step_wait = 0;               // Time reference for forward step update
-uint32_t Backward_step_wait = 0;             // Time reference for backward step update
 
 /* Sweep Update Function */
 void sweep_update(void)
@@ -42,10 +36,6 @@ void sweep_update(void)
 
         servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
 
-        if(nb_wait_ms(&Forward_step_wait,sweep_control.interval))
-        {
-            sweep_control.current_step++;
-        }
         if(sweep_control.current_step > 25)
         {
             sweep_control.direction = DIR_backward;
@@ -58,10 +48,6 @@ void sweep_update(void)
 
             servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
 
-            if(nb_wait_ms(&Backward_step_wait,sweep_control.interval))
-            {
-                sweep_control.current_step--;
-            }
             if(sweep_control.current_step < 5)
             {
                 sweep_control.direction = DIR_forward;
@@ -71,5 +57,24 @@ void sweep_update(void)
     
     default:
         break;
+    }
+}
+
+/* Function for returning current step */
+uint8_t sweep_current_step(void)
+{
+    return sweep_control.current_step;
+}
+
+/* Function for getting next step */
+void sweep_next_step(void)
+{
+    if(sweep_control.direction == DIR_forward)
+    {
+        sweep_control.current_step++;
+    }
+    else if(sweep_control.direction == DIR_backward)
+    {
+        sweep_control.current_step--;
     }
 }
