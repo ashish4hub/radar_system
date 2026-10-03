@@ -5,7 +5,6 @@ static volatile uint16_t end_time;              // store pulse end time
 static volatile uint16_t duration;             // Pulse duration
 static volatile uint16_t distance;            // store calulated distance
 static volatile uint8_t measurement_done;    // measuremnt done flag
-static uint32_t trig_wait = 0;              // Trigger wait 
 
 /* State */
 typedef enum{
@@ -15,7 +14,7 @@ typedef enum{
 
 HCSR04_state_t state;
 
-/* HCSR04 initialization */
+/* Initialization */
 void OBSTACLE_init(void){
 
     /* ICU configuration */
