@@ -5,7 +5,6 @@ typedef enum
     RADAR_MOVE,
     RADAR_SETTLE,
     RADAR_MEASURE,
-    RADAR_WAIT_ECHO,
     RADAR_SEND
 }RADAR_CONTROL_t;
 
@@ -14,6 +13,17 @@ uint32_t RADAR_settle_wait = 0;                   // Reference for RADAR settle 
 uint32_t Trigger_wait = 0;                       // Reference for trigger wait time
 uint8_t Current_sweep_step = 0;                      // Storing current servo step
 uint16_t current_distance = 0;                      // Storing current measured distance
+
+/* Radar initialization */
+void radar_init(void)
+{
+    timer_init();
+    OBSTACLE_init();
+    servo_init();
+    USART_init(9600);
+    gpio_init(5,GPIO_OUTPUT);
+}
+
 
 /* Radar Controlling Function */
 void radar_control(void)
