@@ -8,7 +8,7 @@ typedef enum
     RADAR_SEND
 }RADAR_CONTROL_t;
 
-RADAR_CONTROL_t RADAR_STATE = RADAR_MOVE;                       // RADAR operation state
+RADAR_CONTROL_t RADAR_STATE;                       // RADAR operation state
 uint32_t RADAR_settle_wait = 0;                   // Reference for RADAR settle time wait
 uint32_t Trigger_wait = 0;                       // Reference for trigger wait time
 uint8_t Current_sweep_step = 0;                      // Storing current servo step
