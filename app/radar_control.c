@@ -59,11 +59,7 @@ void radar_control(void)
             break;
 
     case RADAR_SEND:
-        Current_sweep_step = sweep_current_step();
-        USART_print("\nDis: ");
-        USART_printIN(current_distance);
-        USART_print("\nStep: ");
-        USART_printIN(Current_sweep_step);
+        send_data(DATA_send);
         sweep_next_step();
         RADAR_STATE = RADAR_MOVE;
         break;
