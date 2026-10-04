@@ -5,7 +5,7 @@ OBJCOPY = avr-objcopy
 CFLAGS = -mmcu=$(MCU) -Os -Wall -DF_CPU=$(F_CPU)
 
 TARGET = main
-SRC    = main.c driver/timer/timer.c driver/uart/uart.c driver/gpio/gpio.c driver/servo/servo.c driver/icu/icu.c src/sweep_control.c src/obstacle_detection.c app/radar_control.c
+SRC    = main.c driver/timer/timer.c driver/uart/uart.c driver/gpio/gpio.c driver/servo/servo.c driver/icu/icu.c src/sweep_control.c src/obstacle_detection.c app/radar_control.c src/send_data.c
 # This converts the .c list into a .o list
 OBJ    = $(SRC:.c=.o)
 
