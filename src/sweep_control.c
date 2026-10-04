@@ -36,7 +36,7 @@ void sweep_update(void)
 
         servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
 
-        if(sweep_control.current_step > 25)
+        if(sweep_control.current_step >= 25)
         {
             sweep_control.direction = DIR_backward;
             sweep_control.current_step = 25;
@@ -48,7 +48,7 @@ void sweep_update(void)
 
             servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
 
-            if(sweep_control.current_step < 5)
+            if(sweep_control.current_step <= 5)
             {
                 sweep_control.direction = DIR_forward;
                 sweep_control.current_step = 5;
