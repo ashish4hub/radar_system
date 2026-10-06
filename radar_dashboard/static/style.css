@@ -1,0 +1,134 @@
+* {
+      box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #050b09;
+        color: #b8ffd9;
+        font-family: "Courier New", monospace;
+        }
+
+        .dashboard {
+        width: min(1200px, 94vw);
+        margin: 25px auto;
+       }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #245e40;
+            }
+
+        .subtitle {
+            color: #62a87f;
+            font-size: 12px;
+            letter-spacing: 2px;
+            }
+
+        h1 {
+            margin: 6px 0 0;
+            font-size: clamp(26px, 4vw, 44px);
+            letter-spacing: 6px;
+            }
+
+        .status {
+            padding: 10px 15px;
+            border: 1px solid;
+            font-size: 13px;
+            letter-spacing: 1px;
+            }
+
+        .status.online {
+            color: #75ffad;
+            border-color: #1eff00;
+            }
+
+        .status.offline {
+            color: #3efc04;
+            border-color: #713f3f;
+            }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 230px;
+            gap: 18px;
+            margin-top: 18px;
+            }
+
+        .radar-card {
+            position: relative;
+            aspect-ratio: 1.5 / 1;
+            min-height: 450px;
+            overflow: hidden;
+            border: 1px solid #0a3501;
+            background: #1b8d5a;
+            }
+
+        #radarCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            }
+
+        .info-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 28px;
+            padding: 22px;
+            border: 1px solid #0a3501;
+            background: #0e3d28;
+            }
+
+        .metric span {
+            display: block;
+            margin-bottom: 8px;
+            color: #62a87f;
+            font-size: 16px;
+            letter-spacing: 2px;
+            }
+
+        .metric strong {
+            font-size: 30px;
+            font-weight: normal;
+            
+            }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding-top: 12px;
+            color: #4c8967;
+            font-size: 12px;
+            }
+
+        @media (max-width: 750px) {
+            .dashboard {
+                width: 96vw;
+                margin: 12px auto;
+                }
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+                }
+            .main-layout {
+                grid-template-columns: 1fr;
+                }
+            .radar-card {
+                min-height: 0;
+                }
+            .info-card {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                }
+            footer {
+                flex-direction: column;
+                }
+            }

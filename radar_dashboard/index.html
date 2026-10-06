@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"content="width=device-width, initial-scale=1.0">
+
+<title>Radar System</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="dashboard">
+<header class="topbar">
+<div>
+<div class="subtitle">
+• LIVE ULTRASONIC SENSOR
+</div>
+<h1>RADAR SYSTEM</h1>
+</div>
+<div id="status" class="status offline">
+● DISCONNECTED
+</div>
+</header>
+<section class="main-layout">
+        <!-- RADAR -->
+<div class="radar-card">
+<canvas id="radarCanvas"></canvas>
+</div>
+<!-- INFORMATION PANEL -->
+<aside class="info-card">
+<div class="metric">
+<span>STEP</span>
+<strong id="step">--</strong>
+</div>
+<div class="metric">
+<span>ANGLE</span>
+<strong id="angle">--°</strong>
+</div>
+<div class="metric">
+<span>DISTANCE</span>
+<strong id="distance">-- cm</strong>
+</div>
+<div class="metric">
+<span>MAX RANGE</span>
+<strong>200 cm</strong>
+</div>
+</aside>
+</section>
+<footer>
+<span>
+LIVE SCAN DISPLAY
+</span>
+<span id="lastUpdate">
+Waiting for data...
+</span>
+</footer>
+</main>
+<script src="/static/radar.js"></script>
+</body>
+</html>
