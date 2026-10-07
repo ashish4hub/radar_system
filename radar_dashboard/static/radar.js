@@ -1,13 +1,14 @@
 
 console.log("RADAR.JS LOADED")
+
 // ============================================================
 // RADAR DASHBOARD
 // Receives:
 //     {"step":15,"distance":42}
 //
 // Step range:
-//     5  -> 0°
-//     25 -> 180°
+// 5  -> 0°
+// 25 -> 180°
 //
 // WebSocket:
 //     /ws
@@ -69,7 +70,7 @@ function connectWebSocket()
     *localhost:8000
     *
     * other device:
-    *172.29.208.104:8000
+    *Check IP 
     */
     const protocol =
         window.location.protocol === "https:"
