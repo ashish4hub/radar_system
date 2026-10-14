@@ -131,8 +131,8 @@ radar_system/
      |             |———> index.html
      |             |———> server.py
      |             |———> static/
-     |                      |———> radar.js
-     |                      |———> style.css
+     |                     |———> radar.js
+     |                     |———> style.css
      |
      |———> main.c
      |———> makefile     
@@ -259,11 +259,11 @@ The current `postion` and `angle` is visualized on web based dashboard.
 ```
 
 ## Data Transmission 
-The current `position` and `step` data is transmitted from the `MCU` to the `PC` over serial in the format `(step, distance)` The PC runs a `python` program `radar_data_acq.py` which receives the transmitted data and `parse` it in required format, `step: `, `distance:`.
+The current `position` and `step` data is transmitted from the MCU to the PC over serial in the format `(step, distance)`. The PC runs a `python` program `radar_data_acq.py` which receives the transmitted data using `pyserial` and `parse` it in required format, `step: `, `distance:`.
 
 ## Data Broadcasting
 The `parsed` data is then broadcasted over the dashboard using a `python` server `server.py`. The data is continuously updated and broadcast on the `dashboard`.
-The python backend `server.py` acts as the bridge between embedded system and the browser.
+The python backend `server.py` acts as the bridge between the embedded system and the browser.
 ### Main Functions (Backend)
 - Serves the web application:
 FastAPI serves the HTML, CSS and Js files required by the dashboard.
@@ -287,23 +287,23 @@ angle = (step - 5) * 9
 ```text
           HCSR04
             |
-            | Echo timing
+            |> Echo timing
             |
         Atmega328P
-            | 
-            | step, distance
+            |
+            |> step, distance
             |
      radar_data_acq.py
             |
-            | structured data
+            |> structured data
             |
         server.py
             |
-            | JSON over WebSocket
+            |> JSON over WebSocket
             |
         radar.js
             | 
-            | angle, distance
+            |> angle, distance
             |
       Radar Dashboard
 
@@ -370,7 +370,7 @@ http://localhost:8000
 http://<host_ip>:8000
 ```
 ## License
-This project is licensed under MIT License. See the [License](License) for details.
+This project is licensed under MIT License. See the [License](LICENSE) for details.
 
 
 
