@@ -32,12 +32,15 @@ void OBSTACLE_init(void){
     ICU_set_edge(ICU_rising);
 }
 
-/* Trigger pulse */
-void OBSTACLE_trigger(void){
-
-    gpio_write(7,GPIO_HIGH);
-    _delay_us(10);
-    gpio_write(7,GPIO_LOW);
+/* Trigger pulse When ICU_done == 0 */
+void OBSTACLE_trigger(void)
+{
+    if (!(ICU_done()))
+    {
+        gpio_write(7,GPIO_HIGH);
+        _delay_us(10);
+        gpio_write(7,GPIO_LOW);
+    }
 }
 
 /* Distance update */
