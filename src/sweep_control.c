@@ -9,7 +9,7 @@ typedef enum
     DIR_backward
 }sweep_dir_t;
 
-/* Servo control structure */
+/* Servo Control Structure */
 typedef struct
 {
     uint8_t current_step;                     // Servo steps
@@ -17,12 +17,11 @@ typedef struct
     uint8_t servo_pin;                    // Servo Pin
 }sweep_control_t;
 
-/* Initial values */
+/* Initial Values */
 sweep_control_t sweep_control =
 {
     .current_step = 5,
     .direction = DIR_forward,
-    .servo_pin = 5
 };
 
 /* Sweep Update Function */
@@ -31,16 +30,16 @@ void sweep_update(void)
     switch (sweep_control.direction)
     {
 
-    // Forward Sweep
-    case DIR_forward:
+        // Forward Sweep
+        case DIR_forward:
 
-        servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
+            servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
 
-        if(sweep_control.current_step >= 25)
-        {
-            sweep_control.direction = DIR_backward;
-            sweep_control.current_step = 25;
-        }
+            if(sweep_control.current_step >= 25)
+            {
+                sweep_control.direction = DIR_backward;
+                sweep_control.current_step = 25;
+            }
         break;
 
         // Backward Sweep
@@ -53,8 +52,8 @@ void sweep_update(void)
                 sweep_control.direction = DIR_forward;
                 sweep_control.current_step = 5;
             }
-            break;
-    
+        break;
+
         default:
         break;
     }
@@ -66,7 +65,7 @@ uint8_t sweep_current_step(void)
     return sweep_control.current_step;
 }
 
-/* Function for getting next step */
+/* Function for updating next step */
 void sweep_next_step(void)
 {
     if(sweep_control.direction == DIR_forward)
@@ -77,4 +76,10 @@ void sweep_next_step(void)
     {
         sweep_control.current_step--;
     }
+}
+
+/* Servo pin for Sweep service */
+void sweep_set_pin(uint8_t servo_pin)
+{
+    sweep_control.servo_pin = servo_pin;
 }
