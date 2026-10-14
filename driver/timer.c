@@ -11,7 +11,7 @@
 
 #define F_CPU 16000000UL
 
-#include "timer.h"
+#include "../inc/timer.h"
 
 volatile uint32_t tick = 0;
 
