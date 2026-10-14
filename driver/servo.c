@@ -21,7 +21,7 @@
 
 */
 
-#include "../../inc/servo.h"
+#include "../inc/servo.h"
 
 static volatile uint8_t tick_100us = 0;                 // Store pulse
 
