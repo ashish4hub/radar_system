@@ -33,19 +33,19 @@ void radar_control(void)
     switch (RADAR_STATE)
     {
 
-    case RADAR_MOVE:
+        case RADAR_MOVE:
         sweep_update();
         RADAR_STATE = RADAR_SETTLE;
         break;
 
-    case RADAR_SETTLE:
-        if(nb_wait_ms(&RADAR_settle_wait,5))
-        {
-            RADAR_STATE = RADAR_MEASURE;
-        }
+        case RADAR_SETTLE:
+            if(nb_wait_ms(&RADAR_settle_wait,5))
+            {
+                RADAR_STATE = RADAR_MEASURE;
+            }
         break;
     
-    case RADAR_MEASURE:
+        case RADAR_MEASURE:
             if(nb_wait_ms(&Trigger_wait,60))
             {
                 OBSTACLE_trigger();
@@ -53,18 +53,17 @@ void radar_control(void)
             OBSTACLE_update();
             if(OBSTACLE_measure_done())
             {
-                current_distance = OBSTACLE_get_distance();
                 RADAR_STATE = RADAR_SEND;
             }
-            break;
+        break;
 
-    case RADAR_SEND:
-        send_data(DATA_send);
-        sweep_next_step();
-        RADAR_STATE = RADAR_MOVE;
+        case RADAR_SEND:
+            send_data(DATA_send);
+            sweep_next_step();
+            RADAR_STATE = RADAR_MOVE;
         break;
     
-    default:
+        default:
         break;
     }
 }

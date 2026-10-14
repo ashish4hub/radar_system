@@ -33,7 +33,10 @@ void ICU_init(const ICU_config_t *config){
     TIMSK1 |= (1 << ICIE1);
 }
 
-/* ISR */
+/* ISR 
+* Update Capture 
+* Set Capture done flag
+*/
 ISR(TIMER1_CAPT_vect){
     icu_capture = ICR1;
     icu_done = 1;

@@ -8,18 +8,18 @@ void send_data(DATA_tx_t state)
 {
     switch (state)
     {
-    case DATA_idle:
+        case DATA_idle:
         break;
 
-    case DATA_send:
-        USART_printIN(sweep_current_step());
-        USART_print(",");
-        USART_printIN(OBSTACLE_get_distance());
-        USART_print("\n");
-        state = DATA_idle;
+        case DATA_send:
+            USART_printIN(sweep_current_step());
+            USART_print(",");
+            USART_printIN(OBSTACLE_get_distance());
+            USART_print("\n");
+            state = DATA_idle;
         break;
 
-    default:
+        default:
         break;
     }
 }

@@ -55,7 +55,7 @@ void sweep_update(void)
             }
             break;
     
-    default:
+        default:
         break;
     }
 }
