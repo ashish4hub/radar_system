@@ -2,7 +2,7 @@
 
 #define F_CPU 16000000UL
 
-#include "../../inc/icu.h"
+#include "../inc/icu.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
