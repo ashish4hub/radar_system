@@ -95,20 +95,12 @@ radar_system/
      |
      |———> driver/
      |        |
-     |        |———> gpio/
-     |        |       |———> gpio.c
-     |        |
-     |        |———> timer/
-     |        |        |———> timer.c
-     |        |
-     |        |———> servo/
-     |        |        |———> servo.c
-     |        |
-     |        |———> icu/
-     |        |       |———> icu.c
-     |        |
-     |        |———> uart/
-     |                |———> uart.c
+     |        |———> gpio.c
+     |        |———> timer.c
+     |        |———> servo.c
+     |        |———> icu.c
+     |        |———> uart.c
+     |
      |
      |———> src/
      |      |———> obstacle_detection.c
@@ -135,15 +127,16 @@ radar_system/
      |                     |———> style.css
      |
      |———> main.c
-     |———> makefile     
+     |———> makefile
     
 ```
 ### Layer Responsibility 
 | Layer | Responsibility |
 |-------------|---------------|
 |driver/      | Hardware-specific peripheral driver | 
-|src/      | Application level control |
+|src/      | Specific task services built using hardware drivers|
 |inc/      | Public interface and definition |
+|app/ | Application to run services sequentially |
 |main.c      | Firmware entry point  |
 |radar_dashboard/      | PC side data acquisition and visualization |
 
@@ -191,7 +184,7 @@ Check [ATmega328P-HAL-UART-Driver](https://github.com/ashish4hub/atmega328p-hal/
                          |———> Serial communication/ Radar Data transmission 
 
 ```
-`The firmware avoids using blocking delays for radar operation. Timing is handled by through Hardware peripherals, interrupts and state machine progression.`
+`The firmware avoids using blocking delays for radar operation. Timing is handled by Hardware peripherals, interrupts and state machine progression.`
 
 # Drivers
 | Driver | Purpose |
@@ -204,32 +197,70 @@ Check [ATmega328P-HAL-UART-Driver](https://github.com/ashish4hub/atmega328p-hal/
 
 *The peripheral drivers are implemented as reusable bare-metal C modules. Deatiled driver documentation is maintained separately in the [ATmega328P HAL](https://github.com/ashish4hub/atmega328p-hal) repository.*
 
+# Radar Application Layer
+The Radar Application is a state-machine driven high level application specific code layer built to sequentially run the `services` using state based progression and keep the system non blocking. The Application layer also acts as `cooperative superloop`, in which every service gets required `CPU cycles` to complete its specified task without blocking the `CPU`.
 
+## State-Machine
+The Application uses the following states to run the services one by one in required sequence.
 
-# Radar Motion
-The servo motor moves the sensors mounted on its top through a series of positions between 0 degree and 180 degree. The firmware internally uses a `step` value rather than directly using angles for `servo` positioning.
+```c
+typedef enum
+{
+    RADAR_MOVE,
+    RADAR_SETTLE,
+    RADAR_TIGGER,
+    RADAR_ECHO,
+    RADAR_SEND
+}RADAR_STATE_t;
+```
+- `RADAR_MOVE`: Update the current step to move the servo.
+- `RADAR_SETTLE`: Wait for servo shaft on which the ultrasonic sensor is mounted to reach the required postion.
+- `RADAR_TRIGGER`: Trigger ultrasonic sesnor once and then change the state.
+- `RADAR_ECHO`: Update ongoing measurement status, if measurement is done, changes the state.
+- `RADAR_SEND`: Send the Radar data, `step` and `measurement` over serial.
+- `RADAR_UPDATE`: Update the next step.
 
+## Internal Setup
+```C
+RADAR_t RADAR_control = {
+    .RADAR_settle_wait_Ref = 0,   // Timer reference for settlement wait
+    .RADAR_settle_time = 100,   // Settle time for RADAR / Sweep speed [Can be changed as desired]
+    .SERVO_pin = 5   // Servo Pin [Can be changed to any GPIO Pin]
+};
+```
+- `SERVO_pin`: The current application use `PD5` Pin of ATmega328P for servo pulse generation, any `GPIO` Pin can be used for the task. [servo driver](https://github.com/ashish4hub/atmega328p-hal)
+
+- `RADAR_settle_time`: Wait time for the Radar to reach the required position in `milliseconds`. Can also be considered as `RADAR SPEED` and can be changed by the user to any desired `32-bit` value. 
+
+*At `RADAR_settle_time` values below 20 the servo makes unpredictable movement behaviour*
+
+# Radar Service Layer
+The Radar system uses different service layers for different tasks.
 
 ## Sweep Control
-The `Radar Application (radar_control.c)` uses the `Sweep control (sweep_control.c)` service layer for the scanning and positioning of the `servo`. This service layer uses `servo` driver for communicating with the hardware registers. The service layer only implements the application specific logic for `Radar system` rather than directly manipulating hardware registers in application for each opertion. The goal was to seperate register level hardware control and application logic.
 
-*The servo driver internally uses a step value for generating pulse for the servo motor. Each step between 5 to 25 corresponds to an angle between 0 to 180 degree.*
+The `Sweep control (sweep_control.c)` service layer is responsible for the movement and positioning of the `servo`. This service layer uses `servo` driver for communicating with the hardware registers. The service layer only implements the required service logic for `Radar system` rather than directly manipulating hardware registers for each opertion. The goal was to seperate register level hardware control and service/application logic.
 
-| Step | Angle in degree (approx) |
-|------|---------|
-| `5` | 0  |
-| `10` | 45 |
-| `15` | 90 |
-| `20` | 135 |
-| `25` | 180 |
+Responsibilities:
+- Acts as a bridge for communication between the high level application and low level servo driver.
+- Changes direction of sweep at extreme values (0 and 180 degrees).
+- Updates the current step value in servo driver according to application for generating pulse.
+
+*The servo driver internally uses a step value for generating pulse for the servo motor.*
 
 *`1 step` is approximately `100 microseconds`. The servo driver uses a `tick_100us` variable which is increamented on every `Timer2` interrupt fire which gives `1 tick_100us = 100 microseconds = 1 step value.`*
 
-# Radar Ranging / Scanning 
-The Radar uses a `HCSR04` ultrasonic sensor for measuring distance and obstacles in its range. Current Architecture restricts its range to `200cm`, however the actual range of the sensor is found to be `~400cm`.
-
 ## Obstacle detection 
 The higher level Radar application uses `Obstacle Detection (obstacle_detection.c)` service layer for distance measurement and obstacle detection. The service layer only implements the application specific logic and uses `ICU Driver` for accessing the hardware.
+
+The Radar uses a `HCSR04` ultrasonic sensor for measuring distance and obstacles in its range. Current Architecture restricts its range to `200cm`, however the actual range of the sensor is found to be `~400cm`.
+
+Responsibilities:
+- Bridge for communication between ICU driver and Application layer.
+- Trigger a pulse for measurement
+- Update a completion flag when measuremnt is done
+- Return the measuremnet result in CM.
+
 
 # Radar Dashboard
 The current `postion` and `angle` is visualized on web based dashboard.
