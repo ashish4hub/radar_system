@@ -403,7 +403,7 @@ http://<host_ip>:8000
 ## License
 This project is licensed under MIT License. See the [License](LICENSE) for details.
 
-
+*Check [pd](pd) for circuit schematic and prototype*
 
 
 
