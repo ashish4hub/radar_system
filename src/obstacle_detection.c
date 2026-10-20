@@ -8,8 +8,8 @@ static volatile uint8_t measurement_done;    // measuremnt done flag
 
 /* State */
 typedef enum{
-    HCSR04_wait_rising,
-    HCSR04_wait_falling
+    Obstacle_wait_rising,
+    Obastacle_wait_falling
 } HCSR04_state_t;
 
 HCSR04_state_t state;
@@ -26,53 +26,51 @@ void OBSTACLE_init(void){
 
     ICU_init(&icu_config);
 
-
     gpio_init(7,GPIO_OUTPUT);         // TRIG pin set as output
-    state = HCSR04_wait_rising;
-    ICU_set_edge(ICU_rising);
+
+    state = Obstacle_wait_rising;        // Initial edge set to Risisng
+
+    ICU_set_edge(ICU_rising);         // Internal ICU edge set to Risisng for pulse start time
 }
 
-/* Trigger pulse When ICU_done == 0 */
+/* Trigger pulse */
 void OBSTACLE_trigger(void)
 {
-    if (!(ICU_done()))
-    {
-        gpio_write(7,GPIO_HIGH);
-        _delay_us(10);
-        gpio_write(7,GPIO_LOW);
-    }
+    gpio_write(7,GPIO_HIGH);
+    _delay_us(10);
+    gpio_write(7,GPIO_LOW);
+    measurement_done = 0;                 // Clear Measurement completion flag on trigger
 }
 
 /* Distance update */
 void OBSTACLE_update(void){
     if(ICU_done()){
 
-        if(state == HCSR04_wait_rising){
+        if(state == Obstacle_wait_rising){
             start_time = ICU_get_capture();
             ICU_clear();
             ICU_set_edge(ICU_falling);
-            state = HCSR04_wait_falling;
+            state = Obastacle_wait_falling;
         }
         else {
             end_time = ICU_get_capture();
             duration = end_time- start_time;
             distance = duration / 116;
-            measurement_done = 1;
+            measurement_done = 1;                         // Set complition flag when measurement is done
             ICU_set_edge(ICU_rising);
-            state = HCSR04_wait_rising;
+            state = Obstacle_wait_rising;
         }
         ICU_clear();
     }
 }
 
-/* Done API */
+/* Measurement Completion Flag */
 uint8_t OBSTACLE_measure_done(void){
     return measurement_done;
 }
 
-/* Distance API */
+/* Return Distance/Measurement API */
 uint16_t OBSTACLE_get_distance(void){
-    measurement_done = 0;
     return distance;
 }
 
