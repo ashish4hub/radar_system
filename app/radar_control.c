@@ -4,26 +4,30 @@ typedef enum
 {
     RADAR_MOVE,
     RADAR_SETTLE,
-    RADAR_MEASURE,
+    RADAR_TRIGGER,
+    RADAR_WAIT_ECHO,
     RADAR_SEND,
     RADAR_UPDATE
 }RADAR_STATE_t;
 
-RADAR_STATE_t RADAR_STATE = RADAR_MOVE;          // RADAR operation state
+RADAR_STATE_t RADAR_STATE = RADAR_MOVE;          // Initial RADAR operation state
 
 /* Radar Control internal */
 typedef struct
 {
-    uint32_t RADAR_settle_wait_Ref;                   // Reference for RADAR settle time wait
-    uint32_t RADAR_settle_time;                      // Time for Radar settlement
-    uint8_t SERVO_pin;                              // Servo Pin
+    uint32_t RADAR_settle_wait_Ref;                       // Reference for RADAR settle time wait
+    uint16_t RADAR_settle_time;                          // Time for Radar settlement
+    uint32_t RADAR_echo_timeout_ref;                    // Time reference for echo time timeout
+    uint8_t RADAR_echo_timeout;                        // Echo wait time period
+    uint8_t SERVO_pin;                                // Servo Pin
 }RADAR_t;
 
 RADAR_t RADAR_control = {
-    .RADAR_settle_wait_Ref = 0,             // Timer reference for settlement wait
-    .RADAR_settle_time = 100,              // Settle time for RADAR / Sweep speed [Can be changed as desired]
-    .SERVO_pin = 5                        // Servo Pin [Can be changed to any GPIO Pin]
-
+    .RADAR_settle_wait_Ref = 0,                // Timer reference for settlement wait
+    .RADAR_settle_time = 50,                  // Settle time for RADAR / Sweep speed [Can be changed as desired]
+    .RADAR_echo_timeout_ref = 0,             // Echo time reference
+    .RADAR_echo_timeout = 30,               // Echo wait time period
+    .SERVO_pin = 5                         // Servo Pin [Can be changed to any GPIO Pin]
 };
 
 /* Radar initialization */
@@ -54,19 +58,31 @@ void radar_control(void)
         case RADAR_SETTLE:
             if(nb_wait_ms(&RADAR_control.RADAR_settle_wait_Ref,RADAR_control.RADAR_settle_time))
             {
-                RADAR_STATE = RADAR_MEASURE;
+                RADAR_STATE = RADAR_TRIGGER;
             }
         break;
     
         /* Trigger Ultrasonic sensor once */
-        case RADAR_MEASURE:
+        case RADAR_TRIGGER:
             OBSTACLE_trigger();
+            RADAR_STATE = RADAR_WAIT_ECHO;
+        break;
+
+        /* Wait for Echo */
+        case RADAR_WAIT_ECHO:
             OBSTACLE_update();
             if(OBSTACLE_measure_done())
             {
                 RADAR_STATE = RADAR_SEND;
             }
-        
+            /* Re-Trigger if echo is not detected whithin the timeout period */
+            else
+            {
+                if(nb_wait_ms(&RADAR_control.RADAR_echo_timeout_ref,RADAR_control.RADAR_echo_timeout))
+                {
+                    RADAR_STATE = RADAR_TRIGGER;
+                }
+            }
         break;
     
         /* Send step and measurement data over serial */
