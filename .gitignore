@@ -1,0 +1,6 @@
+*.elf
+*.hex
+*.o
+*.venv
+*.vscode
+*__pycache__
