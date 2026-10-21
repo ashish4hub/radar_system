@@ -16,20 +16,19 @@ RADAR_STATE_t RADAR_STATE = RADAR_IDLE;          // Initial RADAR operation stat
 /* Radar Control internal */
 typedef struct
 {
-    uint32_t RADAR_settle_wait_Ref;                       // Reference for RADAR settle time wait
-    uint16_t RADAR_settle_time;                          // Time for Radar settlement
-    uint32_t RADAR_idle_ref;
-    uint32_t RADAR_echo_timeout_ref;                    // Time reference for echo time timeout
+    uint32_t RADAR_wait_Ref;                             // Time Reference for waiting
+    uint16_t RADAR_settle_time;                         // Time for Radar settlement
     uint8_t RADAR_echo_timeout;                        // Echo wait time period
     uint8_t SERVO_pin;                                // Servo Pin
+    uint8_t SERVO_initial_step;                      // Initial step 0 degree
 }RADAR_t;
 
 RADAR_t RADAR_control = {
-    .RADAR_settle_wait_Ref = 0,                // Timer reference for settlement wait
-    .RADAR_settle_time = 50,                  // Settle time for RADAR / Sweep speed [Can be changed as desired]
-    .RADAR_echo_timeout_ref = 0,             // Echo time reference
-    .RADAR_echo_timeout = 35,               // Echo wait time period
-    .SERVO_pin = 5                         // Servo Pin [Can be changed to any GPIO Pin]
+    .RADAR_wait_Ref = 0,
+    .RADAR_settle_time = 100,                  // Settle time for RADAR / Sweep speed [Can be changed as desired]
+    .RADAR_echo_timeout = 35,                 // Echo wait time period
+    .SERVO_pin = 5,                          // Servo Pin [Can be changed to any GPIO Pin]
+    .SERVO_initial_step = 5                 // Servo initial 0 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
 };
 
 /* Radar initialization */
@@ -40,32 +39,33 @@ void radar_init(void)
     servo_init();
     USART_init(9600);
     gpio_init(RADAR_control.SERVO_pin,GPIO_OUTPUT);
-    sweep_set_pin(RADAR_control.SERVO_pin);
+    sweep_set_internal(RADAR_control.SERVO_pin, RADAR_control.SERVO_initial_step);
 }
 
 /* State-based Radar Control Function */
 void radar_control(void)
 {
-
     switch (RADAR_STATE)
     {
-
+        /* Idle Radar state -> Position Radar at Initial position 0 degree */
         case RADAR_IDLE:
-        sweep_idle();
-        RADAR_STATE = RADAR_MOVE;
+        sweep_initial_position();
+        if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,100))
+        {
+            RADAR_STATE = RADAR_MOVE;
+        }
         break;
 
-        /* Upadte step and Move Servo */
+        /* Update step and Move Servo */
         case RADAR_MOVE:
-
             sweep_update();
-            RADAR_control.RADAR_settle_wait_Ref = get_ticks();    // Record time for settle after movement started
+            RADAR_control.RADAR_wait_Ref = get_ticks();    // Record time for settle after movement started
             RADAR_STATE = RADAR_SETTLE;
         break;
         
         /* Wait for the Radar to settle at required position */
         case RADAR_SETTLE:
-            if(nb_wait_ms(&RADAR_control.RADAR_settle_wait_Ref,RADAR_control.RADAR_settle_time))
+            if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_settle_time))
             {
                 RADAR_STATE = RADAR_TRIGGER;
             }
@@ -74,7 +74,7 @@ void radar_control(void)
         /* Trigger Ultrasonic sensor once */
         case RADAR_TRIGGER:
             OBSTACLE_trigger();
-            RADAR_control.RADAR_echo_timeout_ref = get_ticks();    // Record time for echo timeout when triggered
+            RADAR_control.RADAR_wait_Ref = get_ticks();    // Record time for echo timeout when triggered
             RADAR_STATE = RADAR_WAIT_ECHO;
         break;
 
@@ -85,10 +85,10 @@ void radar_control(void)
             {
                 RADAR_STATE = RADAR_SEND;
             }
-            /* Re-Trigger if echo is not detected whithin the timeout period */
+            /* Abort measurement and advance sweep if echo is not detected whithin the timeout period */
             else
             {
-                if(nb_wait_ms(&RADAR_control.RADAR_echo_timeout_ref,RADAR_control.RADAR_echo_timeout))
+                if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_echo_timeout))
                 {
                     RADAR_STATE = RADAR_UPDATE;
                 }
@@ -101,7 +101,7 @@ void radar_control(void)
             RADAR_STATE = RADAR_UPDATE;
         break;
 
-        /* Upadte step value */
+        /* Update step value */
         case RADAR_UPDATE:
             sweep_next_step();
             RADAR_STATE = RADAR_MOVE;
