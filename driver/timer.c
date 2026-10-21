@@ -5,7 +5,7 @@
 /*
 ---------------APIs---------------
 * timer_init() ----> Timer initialization
-* nb_wait_ms() ----> API for generating delay
+* nb_wait_ms() ----> API for generating non blocking delay
 * get_ticks() ----> Get current ticks (time) for reference in nb_wait_ms()
 */
 
@@ -28,7 +28,7 @@ ISR(TIMER0_COMPA_vect){
     tick++;
 }
 
-/* Store generated ticks in 't' */
+/* Return current ticks (Time in ms) */
 uint32_t get_ticks(void){
     uint32_t t;
     uint8_t sreg = SREG;      // Save global interrupt state
