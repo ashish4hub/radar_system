@@ -3,10 +3,8 @@
 #define F_CPU 16000000UL
 
 #include "../inc/icu.h"
-#include <avr/io.h>
-#include <avr/interrupt.h>
 
-static volatile uint16_t icu_capture = 0;
+static volatile uint16_t icu_capture;
 static volatile uint8_t icu_done = 0; 
 
 /* ICU initialization */
@@ -47,9 +45,16 @@ uint8_t ICU_done(void){
     return icu_done;
 }
 
-/* Read capture value */
-uint16_t ICU_get_capture(void){
-    return icu_capture;
+/* Atomic Read capture value */
+uint16_t ICU_get_capture(void)
+{
+    uint16_t capture;
+
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        capture = icu_capture;
+    }
+    return capture;
 }
 
 /* Clear flag API */
