@@ -8,11 +8,11 @@ static volatile uint8_t measurement_done;    // measuremnt done flag
 
 /* State */
 typedef enum{
-    Obstacle_wait_rising,
-    Obastacle_wait_falling
-} HCSR04_state_t;
+    obstacle_wait_rising,
+    obastacle_wait_falling
+} obstacle_state_t;
 
-HCSR04_state_t state;
+obstacle_state_t obstacle_state;
 
 /* Initialization */
 void OBSTACLE_init(void){
@@ -28,7 +28,7 @@ void OBSTACLE_init(void){
 
     gpio_init(7,GPIO_OUTPUT);         // TRIG pin set as output
 
-    state = Obstacle_wait_rising;        // Initial edge set to Risisng
+    obstacle_state = obstacle_wait_rising;        // Initial edge set to Risisng
 
     ICU_set_edge(ICU_rising);         // Internal ICU edge set to Risisng for pulse start time
 }
@@ -42,25 +42,34 @@ void OBSTACLE_trigger(void)
     measurement_done = 0;                 // Clear Measurement completion flag on trigger
 }
 
-/* Distance update */
-void OBSTACLE_update(void){
-    if(ICU_done()){
-
-        if(state == Obstacle_wait_rising){
+/* Obstacle Update */
+void OBSTACLE_update(void)
+{
+    if(ICU_done())
+    {
+        switch (obstacle_state)
+        {
+        /* Record Start time when rising edge is detected */
+        case obstacle_wait_rising:
             start_time = ICU_get_capture();
             ICU_clear();
             ICU_set_edge(ICU_falling);
-            state = Obastacle_wait_falling;
-        }
-        else {
+            obstacle_state = obastacle_wait_falling;
+            break;
+
+        /* Record End time when falling edge is detected */
+        case obastacle_wait_falling:
             end_time = ICU_get_capture();
             duration = end_time- start_time;
             distance = duration / 116;
-            measurement_done = 1;                         // Set complition flag when measurement is done
+            measurement_done = 1;                             // Set complition flag when measurement is done
             ICU_set_edge(ICU_rising);
-            state = Obstacle_wait_rising;
+            obstacle_state = obstacle_wait_rising;
+            ICU_clear();
+        
+        default:
+            break;
         }
-        ICU_clear();
     }
 }
 
