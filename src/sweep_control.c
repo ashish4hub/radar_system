@@ -6,22 +6,21 @@
 typedef enum
 {
     DIR_forward,
-    DIR_backward
+    DIR_backward,
 }sweep_dir_t;
 
 /* Servo Control Structure */
 typedef struct
 {
     uint8_t current_step;                     // Servo steps
-    sweep_dir_t direction;                  // Sweep direcion
-    uint8_t servo_pin;                    // Servo Pin
+    sweep_dir_t direction;                   // Sweep direcion
+    uint8_t servo_pin;                      // Servo Pin
 }sweep_control_t;
 
-/* Initial Values */
+/* Initial Value */
 sweep_control_t sweep_control =
 {
-    .current_step = 5,
-    .direction = DIR_forward,
+    .direction = DIR_forward
 };
 
 /* Sweep Update Function */
@@ -29,7 +28,6 @@ void sweep_update(void)
 {
     switch (sweep_control.direction)
     {
-
         // Forward Sweep
         case DIR_forward:
 
@@ -59,9 +57,10 @@ void sweep_update(void)
     }
 }
 
-void sweep_idle(void)
+/* Sweep initial position */
+void sweep_initial_position(void)
 {
-    servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
+    servo_move_step(sweep_control.servo_pin, sweep_control.current_step);
 }
 
 /* Function for returning current step */
@@ -84,7 +83,8 @@ void sweep_next_step(void)
 }
 
 /* Servo pin for Sweep service */
-void sweep_set_pin(uint8_t servo_pin)
+void sweep_set_internal(uint8_t servo_pin, uint8_t servo_initial_step)
 {
     sweep_control.servo_pin = servo_pin;
+    sweep_control.current_step = servo_initial_step;
 }
