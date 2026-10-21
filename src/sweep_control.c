@@ -59,6 +59,11 @@ void sweep_update(void)
     }
 }
 
+void sweep_idle(void)
+{
+    servo_move_step(sweep_control.servo_pin,sweep_control.current_step);
+}
+
 /* Function for returning current step */
 uint8_t sweep_current_step(void)
 {
