@@ -3,6 +3,7 @@
 typedef enum
 {
     RADAR_IDLE,
+    RADAR_IDLE_WAIT,
     RADAR_MOVE,
     RADAR_SETTLE,
     RADAR_TRIGGER,
@@ -50,7 +51,13 @@ void radar_control(void)
         /* Idle Radar state -> Position Radar at Initial position 0 degree */
         case RADAR_IDLE:
         sweep_initial_position();
-        if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,100))
+        RADAR_control.RADAR_wait_Ref = get_ticks();
+        RADAR_STATE = RADAR_IDLE_WAIT;
+        break;
+
+        /* Wait state for Radar to reach initial position 0 degree */
+        case RADAR_IDLE_WAIT:
+        if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_settle_time))
         {
             RADAR_STATE = RADAR_MOVE;
         }
@@ -90,6 +97,7 @@ void radar_control(void)
             {
                 if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_echo_timeout))
                 {
+                    OBSTACLE_detection_abort();       // Abort measurement/detection if timeout
                     RADAR_STATE = RADAR_UPDATE;
                 }
             }
