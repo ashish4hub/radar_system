@@ -31,7 +31,7 @@ typedef struct
     uint8_t servo_pulse_duration;
 } SERVO_t;
 
-SERVO_t SERVO;
+static volatile SERVO_t SERVO;
 
 /* Timer2 initialization fucntion for servo */
 void servo_init()
