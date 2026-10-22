@@ -73,6 +73,14 @@ void OBSTACLE_update(void)
     }
 }
 
+/* Obstacle detection abort */
+void OBSTACLE_detection_abort(void)
+{
+    obstacle_state = obstacle_wait_rising;
+    ICU_set_edge(ICU_rising);
+    ICU_clear();
+}
+
 /* Measurement Completion Flag */
 uint8_t OBSTACLE_measure_done(void){
     return measurement_done;
