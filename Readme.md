@@ -7,7 +7,7 @@ The system uses a servo-mounted HC-SR04 ultrasonic sensor to scan the environmen
 ## Features
 
 - Bare-metal C firmware
-- Non-blocking firmware architecture
+- State-machine based firmware architecture
 - ATmega328P microcontroller
 - Servo-based 180° scanning
 - HC-SR04 ultrasonic ranging
@@ -16,9 +16,7 @@ The system uses a servo-mounted HC-SR04 ultrasonic sensor to scan the environmen
 - Modular peripheral drivers
 - UART communication
 - Python-based serial data acquisition
-- WebSocket-based real-time dashboard
-- Browser-based radar visualization
-- State-machine-based radar control
+- Web-dashboard based radar visualization
 
 ## System Architecture
 
@@ -68,21 +66,20 @@ Firmware is organised into layers to keep Hardware specific code and application
 
 ```text
 
-           main.c
-             |
-       radar_control.c
-               |
-               |———> Send_data.c
-               |———> sweep_control.c
-               |———> obstacle_detection.c
-                                |
-                                |———> servo.c
-                                |———> icu.c
-                                |———> uart.c
-                                |———> gpio.c
-                                |———> timer.c
-                                         |
-                                     ATmega328P
+    main.c
+     |
+radar_control.c
+        |
+        |———> Send_data.c -------------->|
+        |———> sweep_control.c ---------->|
+        |———> obstacle_detection.c ----->|
+                                         |———> servo.c --->|
+                                         |———> icu.c ----->|
+                                         |———> uart.c ---->|
+                                         |———> gpio.c ---->|
+                                         |———> timer.c --->|
+                                                           |
+                                                       ATmega328P
                                           
 ```
 
@@ -147,44 +144,6 @@ radar_system/
 |SG90 Servo      | Radar sensing positioning |
 |HCSR04      | Ultrasonic detection  |
 
-# Peripherals and Application
-The firmware configures and uses Built-in Hardware peripherals for different applications.
-
-### 8 bit Timer/Counter Timer0
-`Timer0` is used in `timer driver` for generating hardware interrupt based precise and non blocking delays.
-
-Check [ATmega328P-HAL-Timer-Driver](https://github.com/ashish4hub/atmega328p-hal/driver/timer/)
-
-### 16 bit Timer/Counter  Timer1
-`Timer1` is used in the `icu` driver where the peripheral is configured in `ICU` mode for precise `edge detection`. The `Input Capture Unit (ICU)`has selectable edges `Rising/Falling` which can be programmed to trigger on a rising (low to high) or falling edge (high to low). 
-
-Check [ATmega328P-HAL-ICU-Driver](https://github.com/ashish4hub/atmega328p-hal/driver/icu/)
-
-### 8 bit Timer/Counter Timer2
-`Timer2` is configured in `CTC`mode with a prescaler `8` and a top values `OCR2A = 199`.The the Timer2 `Interrupt` is enabled (`OCIA` bit of the `TIMSK2` register is set) and `global interrupt`is enabled. This timer peripheral is used for generating accurate and precise pulse timing for servo motor positioning in `servo` driver.
-
-### USART
-The `USART/UART` Peripheral of `ATmega328P` is used in the `uart` driver for establishing `serial communication` with other peripherals and devices.
-Check [ATmega328P-HAL-UART-Driver](https://github.com/ashish4hub/atmega328p-hal/driver/uart/)
-
-## 
-```text
-          Peripheral
-               |
-               |———> Timer0
-               |        |———> System timing / non blocking delays 
-               |
-               |———> Timer1
-               |        |———> ICU
-               |
-               |———> Timer2
-               |        |———> Servo Pulse timing
-               |
-               |———> Usart/Uart
-                         |———> Serial communication/ Radar Data transmission 
-
-```
-`The firmware avoids using blocking delays for radar operation. Timing is handled by Hardware peripherals, interrupts and state machine progression.`
 
 # Drivers
 | Driver | Purpose |
@@ -200,39 +159,14 @@ Check [ATmega328P-HAL-UART-Driver](https://github.com/ashish4hub/atmega328p-hal/
 # Radar Application Layer
 The Radar Application is a state-machine driven high level application specific code layer built to sequentially run the `services` using state based progression and keep the system non blocking. The Application layer also acts as `cooperative superloop`, in which every service gets required `CPU cycles` to complete its specified task without blocking the `CPU`.
 
-## State-Machine
-The Application uses the following states to run the services one by one in required sequence.
 
-```c
-typedef enum
-{
-    RADAR_MOVE,
-    RADAR_SETTLE,
-    RADAR_TIGGER,
-    RADAR_ECHO,
-    RADAR_SEND
-}RADAR_STATE_t;
-```
-- `RADAR_MOVE`: Update the current step to move the servo.
-- `RADAR_SETTLE`: Wait for servo shaft on which the ultrasonic sensor is mounted to reach the required postion.
-- `RADAR_TRIGGER`: Trigger ultrasonic sesnor once and then change the state.
-- `RADAR_ECHO`: Update ongoing measurement status, if measurement is done, changes the state.
-- `RADAR_SEND`: Send the Radar data, `step` and `measurement` over serial.
-- `RADAR_UPDATE`: Update the next step.
-
-## Internal Setup
-```C
-RADAR_t RADAR_control = {
-    .RADAR_settle_wait_Ref = 0,   // Timer reference for settlement wait
-    .RADAR_settle_time = 100,   // Settle time for RADAR / Sweep speed [Can be changed as desired]
-    .SERVO_pin = 5   // Servo Pin [Can be changed to any GPIO Pin]
-};
-```
 - `SERVO_pin`: The current application use `PD5` Pin of ATmega328P for servo pulse generation, any `GPIO` Pin can be used for the task. [servo driver](https://github.com/ashish4hub/atmega328p-hal)
 
 - `RADAR_settle_time`: Wait time for the Radar to reach the required position in `milliseconds`. Can also be considered as `RADAR SPEED` and can be changed by the user to any desired `32-bit` value. 
 
-*At `RADAR_settle_time` values below 20 the servo makes unpredictable movement behaviour*
+- The servo `steps` used in the Application are obtained through servo calibration, the pulse duration for servo motors can vary for particular position or angle. The servo motor should be calibrated to obtain specific required pulse duration and replaced in `initial` and `final` step value in Application.
+
+*At `RADAR_settle_time` values below 20 the servo makes unpredictable movement behaviour.*
 
 # Radar Service Layer
 The Radar system uses different service layers for different tasks.
