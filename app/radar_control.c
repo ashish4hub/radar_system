@@ -1,5 +1,10 @@
+/*
+Application Layer
+*/
+
 #include "../inc/radar_control.h"
 
+/* States */
 typedef enum
 {
     RADAR_IDLE,
@@ -22,17 +27,22 @@ typedef struct
     uint8_t RADAR_echo_timeout;                        // Echo wait time period
     uint8_t SERVO_pin;                                // Servo Pin
     uint8_t SERVO_initial_step;                      // Initial step 0 degree
+    uint8_t SERVO_final_step;                       // Final step 180 degree
 }RADAR_t;
 
+/* Internal */
 RADAR_t RADAR_control = {
     .RADAR_wait_Ref = 0,
-    .RADAR_settle_time = 100,                  // Settle time for RADAR / Sweep speed [Can be changed as desired]
+    .RADAR_settle_time = 50,                  // Settle time for RADAR / Sweep speed [Can be changed as desired]
     .RADAR_echo_timeout = 35,                 // Echo wait time period
-    .SERVO_pin = 5,                          // Servo Pin [Can be changed to any GPIO Pin]
-    .SERVO_initial_step = 5                 // Servo initial 0 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
+    .SERVO_pin = 5,                          // Servo Pin [Can be changed to any GPIO Pin] [Check gpio driver or documentation for pin map]
+    .SERVO_initial_step = 5,                // Servo initial 0 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
+    .SERVO_final_step = 25                 // Servo final 180 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
 };
 
-/* Radar initialization */
+/* Radar initialization
+. Initialize Required peripherals
+*/
 void radar_init(void)
 {
     timer_init();
@@ -40,7 +50,7 @@ void radar_init(void)
     servo_init();
     USART_init(9600);
     gpio_init(RADAR_control.SERVO_pin,GPIO_OUTPUT);
-    sweep_set_internal(RADAR_control.SERVO_pin, RADAR_control.SERVO_initial_step);
+    sweep_set_internal(RADAR_control.SERVO_pin, RADAR_control.SERVO_initial_step, RADAR_control.SERVO_final_step);
 }
 
 /* State-based Radar Control Function */
