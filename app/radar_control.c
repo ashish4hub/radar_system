@@ -7,10 +7,17 @@
 */
 
 #include "../inc/radar_control.h"
+#include "../inc/obstacle_detection.h"
+#include "../inc/sweep_control.h"
+#include "../inc/send_data.h"
+#include "../inc/boot_health_check.h"
+#include "../inc/radar_config.h"
+#include <stdlib.h>
 
 /* States */
 typedef enum
 {
+    RADAR_BOOT,
     RADAR_HEALTH_CHECK,
     RADAR_IDLE,
     RADAR_IDLE_WAIT,
@@ -22,7 +29,7 @@ typedef enum
     RADAR_UPDATE
 }RADAR_STATE_t;
 
-RADAR_STATE_t RADAR_STATE = RADAR_HEALTH_CHECK;          // Initial RADAR operation state
+static RADAR_STATE_t RADAR_STATE = RADAR_HEALTH_CHECK;          // Initial RADAR operation state
 
 /* Radar Control internal */
 typedef struct
@@ -37,7 +44,7 @@ typedef struct
 }RADAR_t;
 
 /* Internal */
-RADAR_t RADAR_control = {
+static RADAR_t RADAR_control = {
     .RADAR_wait_Ref = 0,
     .RADAR_settle_time = 25,                    // Settle time for RADAR [Can be changed according to implementation]
     .RADAR_echo_timeout = 35,                  // Echo wait time period [Can be chnaged according to environment and specified range]
@@ -65,9 +72,20 @@ void radar_control(void)
 {
     switch (RADAR_STATE)
     {
+        case RADAR_BOOT:
+            #if RADAR_HEALTH_CHECK_ENABLED
+                RADAR_STATE = RADAR_HEALTH_CHECK;
+            #else
+                RADAR_STATE = RADAR_IDLE;
+            #endif
+        break;
 
         case RADAR_HEALTH_CHECK:
             RUN_HEALTH_CHECK();
+            if(HEALTH_CHECK_STATUS())
+            {
+                RADAR_STATE = RADAR_IDLE;
+            }
         break;
         /* Idle Radar state -> Position Radar at Initial position 0 degree */
         case RADAR_IDLE:
@@ -138,9 +156,6 @@ void radar_control(void)
                 sweep_next_step();
                 RADAR_STATE = RADAR_MOVE;
             }
-        break;
-
-        default:
         break;
     }
 }

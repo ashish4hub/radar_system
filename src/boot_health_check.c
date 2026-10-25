@@ -1,4 +1,16 @@
+/*
+---------------------------BOOT HEALTH CHECK ROUTINE-------------------------------
+* If RADAR_HEALTH_CHECK_ENABLED is enabled the this routine runs
+* Runs the sweep at different speeds to ensure movement
+*/
+
 #include "../inc/boot_health_check.h"
+#include "../inc/radar_config.h"
+#include <stdint.h>
+#include "../inc/sweep_control.h"
+#include "../inc/timer.h"
+#include "../inc/send_data.h"
+
 
 typedef struct {
     uint32_t TIME_ref;                       // Time reference
@@ -30,7 +42,7 @@ HEALTH_check_state_t HEALTH_check_state = HEALTH_CHECK_IDLE;
 
 void RUN_HEALTH_CHECK(void)
 {
-    if(!(HEALTH_check.SWEEPS_performed == 4))
+    if(HEALTH_check.HEALTH_check_done == false)
     {
         switch (HEALTH_check_state)
         {
@@ -57,6 +69,7 @@ void RUN_HEALTH_CHECK(void)
                 if(nb_wait_ms(&HEALTH_check.TIME_ref,HEALTH_check.HEALTH_sweep_speed))
                 {
                     sweep_next_step();
+                    HEALTH_check.HEALTH_sweep_speed /= 2;
                     HEALTH_check_state = HEALTH_CHECK_SWEEP_COUNT;
                 }
             break;
@@ -65,13 +78,18 @@ void RUN_HEALTH_CHECK(void)
                 if(sweep_current_step() == 25)
                 {
                     HEALTH_check.SWEEPS_performed++;
-                    HEALTH_check.SWEEPS_performed /= 2;
+                    HEALTH_check_state = HEALTH_CHECK_START;
                 }
             break;
         }
     }
-    else if (HEALTH_check.SWEEPS_performed == 4)
+    else if (HEALTH_check.SWEEPS_performed >= RADAR_HEALTH_CHECK_SWEEP)
     {
         HEALTH_check.HEALTH_check_done = true;
     }
+}
+
+bool HEALTH_CHECK_STATUS(void)
+{
+    return HEALTH_check.HEALTH_check_done;
 }
