@@ -11,6 +11,7 @@
 /* States */
 typedef enum
 {
+    RADAR_HEALTH_CHECK,
     RADAR_IDLE,
     RADAR_IDLE_WAIT,
     RADAR_MOVE,
@@ -21,7 +22,7 @@ typedef enum
     RADAR_UPDATE
 }RADAR_STATE_t;
 
-RADAR_STATE_t RADAR_STATE = RADAR_IDLE;          // Initial RADAR operation state
+RADAR_STATE_t RADAR_STATE = RADAR_HEALTH_CHECK;          // Initial RADAR operation state
 
 /* Radar Control internal */
 typedef struct
@@ -64,6 +65,10 @@ void radar_control(void)
 {
     switch (RADAR_STATE)
     {
+
+        case RADAR_HEALTH_CHECK:
+            RUN_HEALTH_CHECK();
+        break;
         /* Idle Radar state -> Position Radar at Initial position 0 degree */
         case RADAR_IDLE:
         sweep_initial_position();

@@ -4,6 +4,7 @@
 #include "obstacle_detection.h"
 #include "sweep_control.h"
 #include "send_data.h"
+#include "boot_health_check.h"
 #include <stdlib.h>
 
 void radar_init(void);                            // Initialize RADAR peripherals
