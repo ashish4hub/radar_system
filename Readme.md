@@ -338,7 +338,3 @@ http://<host_ip>:8000
 This project is licensed under MIT License. See the [License](LICENSE) for details.
 
 *Check [pd](pd) for circuit schematic and prototype*
-
-
-
-

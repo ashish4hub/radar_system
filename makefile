@@ -24,12 +24,12 @@ $(TARGET).hex: $(TARGET).elf
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o $(TARGET).elf $(TARGET).hex
+	rm -f $(OBJ) $(TARGET).elf $(TARGET).hex
 
-.PHONY: all clean
+.PHONY: all clean flash serial
 
 flash:
 	avrdude -c arduino -p m328p -P /dev/ttyACM0 -b 115200 -U flash:w:main.hex
 
-.serial:
+serial:
 	picocom -b 9600 --echo /dev/ttyACM0
