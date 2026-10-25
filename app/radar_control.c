@@ -1,5 +1,9 @@
 /*
-Application Layer
+----------------------------------Application---------------------------------
+. Values of wait and time are in MILLISECONDS
+. SWEEP_SPEED can be changed according to usage
+. SETTLE_TIME of the RADAR is set according to the current usage however it can be changed
+. ECHO_TIMEOUT limit can also be changed according to requirements
 */
 
 #include "../inc/radar_control.h"
@@ -22,8 +26,9 @@ RADAR_STATE_t RADAR_STATE = RADAR_IDLE;          // Initial RADAR operation stat
 /* Radar Control internal */
 typedef struct
 {
-    uint32_t RADAR_wait_Ref;                             // Time Reference for waiting
-    uint16_t RADAR_settle_time;                         // Time for Radar settlement
+    uint32_t RADAR_wait_Ref;                              // Time Reference for waiting
+    uint16_t RADAR_settle_time;                          // Time for Radar settlement
+    uint8_t RADAR_sweep_speed;                          // Sweep speed
     uint8_t RADAR_echo_timeout;                        // Echo wait time period
     uint8_t SERVO_pin;                                // Servo Pin
     uint8_t SERVO_initial_step;                      // Initial step 0 degree
@@ -33,8 +38,9 @@ typedef struct
 /* Internal */
 RADAR_t RADAR_control = {
     .RADAR_wait_Ref = 0,
-    .RADAR_settle_time = 50,                  // Settle time for RADAR / Sweep speed [Can be changed as desired]
-    .RADAR_echo_timeout = 35,                 // Echo wait time period
+    .RADAR_settle_time = 25,                    // Settle time for RADAR [Can be changed according to implementation]
+    .RADAR_echo_timeout = 35,                  // Echo wait time period [Can be chnaged according to environment and specified range]
+    .RADAR_sweep_speed = 20,                  // Sweep speed of the radar [can be changed, value in milliseconds]
     .SERVO_pin = 5,                          // Servo Pin [Can be changed to any GPIO Pin] [Check gpio driver or documentation for pin map]
     .SERVO_initial_step = 5,                // Servo initial 0 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
     .SERVO_final_step = 25                 // Servo final 180 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
@@ -116,13 +122,17 @@ void radar_control(void)
         /* Send step and measurement data over serial */
         case RADAR_SEND:
             send_data(DATA_send);
+            RADAR_control.RADAR_wait_Ref = get_ticks();
             RADAR_STATE = RADAR_UPDATE;
         break;
 
         /* Update step value */
         case RADAR_UPDATE:
-            sweep_next_step();
-            RADAR_STATE = RADAR_MOVE;
+            if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_sweep_speed))
+            {
+                sweep_next_step();
+                RADAR_STATE = RADAR_MOVE;
+            }
         break;
 
         default:
