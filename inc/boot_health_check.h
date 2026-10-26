@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-void RUN_HEALTH_CHECK(void);
-bool HEALTH_CHECK_STATUS(void);
+void RUN_HEALTH_CHECK(void);                          // State-machine based health_check functrion
+bool HEALTH_CHECK_STATUS(void);                      // Returns current health check status (true/false)
 
 #endif
