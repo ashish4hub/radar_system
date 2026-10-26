@@ -1,4 +1,8 @@
 #include "../inc/obstacle_detection.h"
+#include "timer.h"
+#include "gpio.h"
+#include "icu.h"
+#include "util/delay.h"
 
 static volatile uint16_t start_time;             // store pulse start time
 static volatile uint16_t end_time;              // store pulse end time

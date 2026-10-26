@@ -1,6 +1,8 @@
 /* Service Layer for Servo motor control */
 
 #include "../inc/sweep_control.h"
+#include "servo.h"
+#include "timer.h"
 
 /* Sweep Direction */
 typedef enum
