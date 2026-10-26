@@ -12,7 +12,10 @@
 #include "../inc/send_data.h"
 #include "../inc/boot_health_check.h"
 #include "../inc/radar_config.h"
+#include "../inc/gpio.h"
+#include "../inc/timer.h"
 #include <stdlib.h>
+#include <stdint.h>
 
 /* States */
 typedef enum
@@ -82,6 +85,11 @@ void radar_control(void)
     */
     switch (RADAR_STATE)
     {
+        /* SYSTEM BOOT STATE 
+        * System boots into a handled boot state
+        * Boot state checks for enabled features and runs the enabled features
+        * If no additional features are ENABLED the system goes into idle state and runs normal operation
+        */
         case RADAR_BOOT:
             #if RADAR_HEALTH_CHECK_ENABLED
                 RADAR_STATE = RADAR_HEALTH_CHECK;
@@ -93,13 +101,19 @@ void radar_control(void)
         /*
         Runs HEALTH_CHECK
         * The system enters normal operation state after completing the HEALTH_CHECK
+        * System runs HEALTH_CHECK only if ENABLED
         */
         case RADAR_HEALTH_CHECK:
-            RUN_HEALTH_CHECK();
-            if(HEALTH_CHECK_STATUS() == true)
-            {
+            #if RADAR_HEALTH_CHECK_ENABLED
+                RUN_HEALTH_CHECK();
+                if(HEALTH_CHECK_STATUS() == true)
+                {
+                    send_data(DATA_send_health);
+                    RADAR_STATE = RADAR_IDLE;
+                }
+            #else
                 RADAR_STATE = RADAR_IDLE;
-            }
+            #endif
         break;
 
         /* Idle Radar state -> Position Radar at Initial position 0 degree */
