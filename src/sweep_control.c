@@ -1,8 +1,8 @@
 /* Service Layer for Servo motor control */
 
 #include "../inc/sweep_control.h"
-#include "servo.h"
-#include "timer.h"
+#include "../inc/servo.h"
+#include "../inc/timer.h"
 
 /* Sweep Direction */
 typedef enum
@@ -14,17 +14,19 @@ typedef enum
 /* Servo Control Structure */
 typedef struct
 {
-    uint8_t current_step;                      // Servo step [Initialized with initial step]
-    uint8_t initial_step;
+    uint8_t current_step;                       // Servo step [Initialized with initial step]
+    uint8_t initial_step;                      // Initial servo step
     uint8_t final_step;                       // Final step
     sweep_dir_t direction;                   // Sweep direcion
     uint8_t servo_pin;                      // Servo Pin
+    float sweeps_performed;
 }sweep_control_t;
 
 /* Initial Value */
 sweep_control_t sweep_control =
 {
     .direction = DIR_forward,
+    .sweeps_performed = 0
 };
 
 /* Sweep Update Function */
@@ -39,6 +41,7 @@ void sweep_update(void)
 
             if(sweep_control.current_step >= sweep_control.final_step)
             {
+                sweep_control.sweeps_performed += 0.5;
                 sweep_control.direction = DIR_backward;
                 sweep_control.current_step = sweep_control.final_step;
             }
@@ -51,6 +54,7 @@ void sweep_update(void)
 
             if(sweep_control.current_step <= sweep_control.initial_step)
             {
+                sweep_control.sweeps_performed += 0.5;
                 sweep_control.direction = DIR_forward;
                 sweep_control.current_step = sweep_control.initial_step;
             }
@@ -71,6 +75,11 @@ void sweep_initial_position(void)
 uint8_t sweep_current_step(void)
 {
     return sweep_control.current_step;
+}
+
+float sweep_executed(void)
+{
+    return sweep_control.sweeps_performed;
 }
 
 /* Function for updating next step */
