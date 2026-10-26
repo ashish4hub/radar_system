@@ -1,6 +1,8 @@
 #ifndef SERVO_H
 #define SERVO_H
 
+#include <stdint.h>
+
 /* Public APIs */
 
 void servo_init(void);                                       // Initialize Servo Control Hardware

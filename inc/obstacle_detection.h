@@ -1,6 +1,8 @@
 #ifndef OBSTACLE_DETECTION_H
 #define OBSTACLE_DETECTION_H
 
+#include <stdint.h>
+
 void OBSTACLE_init(void);                          // Initialize obstacle detection hardware
 void OBSTACLE_trigger(void);                      // Trigger pulse for distance detection
 void OBSTACLE_update(void);                      // Upadte Function for distance detection

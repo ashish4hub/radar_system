@@ -1,7 +1,7 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-#include <stdlib.h>
+#include <stdint.h>
 
 /* Pin Direction */
 typedef enum 

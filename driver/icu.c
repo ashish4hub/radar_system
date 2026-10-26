@@ -3,7 +3,6 @@
 #define F_CPU 16000000UL
 
 #include "../inc/icu.h"
-#include<stdint.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
