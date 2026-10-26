@@ -1,8 +1,6 @@
 #ifndef UART_H
 #define UART_H
 
-#include<avr/io.h>
-#include<avr/interrupt.h>
 #include<stdint.h>
 
 #define Tx_buffer_size 64

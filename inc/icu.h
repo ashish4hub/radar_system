@@ -1,11 +1,6 @@
 #ifndef ICU_H
 #define ICU_H
 
-#include<stdint.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/atomic.h>
-
 // Edge select
 typedef enum {
     ICU_falling,

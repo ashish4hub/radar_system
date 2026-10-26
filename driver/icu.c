@@ -3,6 +3,10 @@
 #define F_CPU 16000000UL
 
 #include "../inc/icu.h"
+#include<stdint.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/atomic.h>
 
 static volatile uint16_t icu_capture;
 static volatile uint8_t icu_done = 0; 

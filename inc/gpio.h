@@ -2,7 +2,6 @@
 #define GPIO_H
 
 #include <stdlib.h>
-#include <avr/io.h>
 
 /* Pin Direction */
 typedef enum 

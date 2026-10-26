@@ -1,10 +1,6 @@
 #ifndef SEND_DATA_H
 #define SEND_DATA_H
 
-#include "obstacle_detection.h"
-#include "sweep_control.h"
-#include "uart.h"
-
 /* Data Transmission State */
 typedef enum
 {

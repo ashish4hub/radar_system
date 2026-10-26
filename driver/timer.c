@@ -12,6 +12,8 @@
 #define F_CPU 16000000UL
 
 #include "../inc/timer.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 volatile uint32_t tick = 0;
 

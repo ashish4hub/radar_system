@@ -1,4 +1,5 @@
 #include "../inc/gpio.h"
+#include <avr/io.h>
 
 /* Register */
 typedef struct 

@@ -15,6 +15,9 @@
 #define F_CPU 16000000UL
 
 #include "../inc/uart.h"
+#include<avr/io.h>
+#include<avr/interrupt.h>
+
 
 volatile char RX_buffer[Rx_buffer_size];
 volatile uint8_t RX_head = 0;
