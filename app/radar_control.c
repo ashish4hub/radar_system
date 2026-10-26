@@ -29,12 +29,13 @@ typedef enum
     RADAR_UPDATE
 }RADAR_STATE_t;
 
-static RADAR_STATE_t RADAR_STATE = RADAR_HEALTH_CHECK;          // Initial RADAR operation state
+static RADAR_STATE_t RADAR_STATE = RADAR_BOOT;          // Initial RADAR operation state
 
 /* Radar Control internal */
 typedef struct
 {
-    uint32_t RADAR_wait_Ref;                              // Time Reference for waiting
+    uint32_t RADAR_wait_Ref;                               // Time Reference for waiting
+    uint16_t RADAR_idle_settle_time;                      // Settle time for RADAR in idle state
     uint16_t RADAR_settle_time;                          // Time for Radar settlement
     uint8_t RADAR_sweep_speed;                          // Sweep speed
     uint8_t RADAR_echo_timeout;                        // Echo wait time period
@@ -51,7 +52,9 @@ static RADAR_t RADAR_control = {
     .RADAR_sweep_speed = 20,                  // Sweep speed of the radar [can be changed, value in milliseconds]
     .SERVO_pin = 5,                          // Servo Pin [Can be changed to any GPIO Pin] [Check gpio driver or documentation for pin map]
     .SERVO_initial_step = 5,                // Servo initial 0 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
-    .SERVO_final_step = 25                 // Servo final 180 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
+    .SERVO_final_step = 25,                // Servo final 180 degree position [Change according to specific servo calibration 1 step == 0.1ms pulse]
+    .RADAR_idle_settle_time = 100         // Settle time for Radar in idle state
+
 };
 
 /* Radar initialization
@@ -70,6 +73,13 @@ void radar_init(void)
 /* State-based Radar Control Function */
 void radar_control(void)
 {
+    /*
+    Radar BOOT state
+    * Checks if RADAR_HEALTH_CHECK_ENABLED is enbaled or not
+    * If enabled runs HEALTH_CHECK
+    * If disabled the system runs normal operation without a on boot HEALTH_CHECK
+    * HEALTH_CHECK can be enabled or disabled in 'radar_config.h' [inc/radar_config.h]
+    */
     switch (RADAR_STATE)
     {
         case RADAR_BOOT:
@@ -80,13 +90,18 @@ void radar_control(void)
             #endif
         break;
 
+        /*
+        Runs HEALTH_CHECK
+        * The system enters normal operation state after completing the HEALTH_CHECK
+        */
         case RADAR_HEALTH_CHECK:
             RUN_HEALTH_CHECK();
-            if(HEALTH_CHECK_STATUS())
+            if(HEALTH_CHECK_STATUS() == true)
             {
                 RADAR_STATE = RADAR_IDLE;
             }
         break;
+
         /* Idle Radar state -> Position Radar at Initial position 0 degree */
         case RADAR_IDLE:
         sweep_initial_position();
@@ -96,13 +111,13 @@ void radar_control(void)
 
         /* Wait state for Radar to reach initial position 0 degree */
         case RADAR_IDLE_WAIT:
-        if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_settle_time))
+        if(nb_wait_ms(&RADAR_control.RADAR_wait_Ref,RADAR_control.RADAR_idle_settle_time))
         {
             RADAR_STATE = RADAR_MOVE;
         }
         break;
 
-        /* Update step and Move Servo */
+        /* Move Servo */
         case RADAR_MOVE:
             sweep_update();
             RADAR_control.RADAR_wait_Ref = get_ticks();    // Record time for settle after movement started
