@@ -162,14 +162,26 @@ The Radar Application is a state-machine driven high level application specific 
 
 - `SERVO_pin`: The current application use `PD5` Pin of ATmega328P for servo pulse generation, any `GPIO` Pin can be used for the task. [servo driver](https://github.com/ashish4hub/atmega328p-hal)
 
-- `RADAR_settle_time`: Wait time for the Radar to reach the required position in `milliseconds`. Can also be considered as `RADAR SPEED` and can be changed by the user to any desired `32-bit` value. 
+- `RADAR_settle_time`: Wait time for the Radar to reach the required position in `milliseconds`.
 
 - The servo `steps` used in the Application are obtained through servo calibration, the pulse duration for servo motors can vary for particular position or angle. The servo motor should be calibrated to obtain specific required pulse duration and replaced in `initial` and `final` step value in Application.
 
-*At `RADAR_settle_time` values below 20 the servo makes unpredictable movement behaviour.*
+*At `RADAR_settle_time` values below 20 the servo makes unpredictable movement behaviour beacuse servo motors generally require a pulse every 20 milliseconds.*
 
 # Radar Service Layer
 The Radar system uses different service layers for different tasks.
+
+## Boot Health Check
+
+The System uses a user configurable on-boot `HEALTH_CHECK` service that can be `ENABLED` or `DISABLED` by the user.
+
+The system enters a `HEALTH_CHECK` state initially if enabled by user, this service verifies the servo movement coordination with the system generated pulses.
+
+- Generates servo pulses and test the movement at different movement speed levels.
+- Limited to software only test, can not verify if the motor physically moved or not.
+- User has to observe the servo movement during the test.
+- Provides only servo movement test
+- After successfully completing the CHECK the system enters normal operating state.
 
 ## Sweep Control
 
@@ -195,6 +207,9 @@ Responsibilities:
 - Update a completion flag when measuremnt is done
 - Return the measuremnet result in CM.
 
+## Data Transmission
+
+`send_data` service modules is responsible for data transmission between the RADAR and the device hosting the server. User can interact with the system using the serial terminal.
 
 # Radar Dashboard
 The current `postion` and `angle` is visualized on web based dashboard.
